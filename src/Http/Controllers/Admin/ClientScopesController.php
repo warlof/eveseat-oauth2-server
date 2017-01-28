@@ -11,13 +11,9 @@
 
 namespace EveScout\Seat\OAuth2Server\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
-
 use EveScout\Seat\OAuth2Server\Models\Client;
-use EveScout\Seat\OAuth2Server\Models\ClientScope;
-use EveScout\Seat\OAuth2Server\Models\Scope;
-
 use EveScout\Seat\OAuth2Server\Validation\ClientScopeRequest;
+use Seat\Web\Http\Controllers\Controller;
 
 /**
  * Class ClientScopesController

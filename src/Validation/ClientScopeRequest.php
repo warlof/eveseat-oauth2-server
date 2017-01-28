@@ -11,14 +11,19 @@
 
 namespace EveScout\Seat\OAuth2Server\Validation;
 
-use App\Http\Requests\Request;
+use Illuminate\Foundation\Http\FormRequest;
 
 /**
  * Class ClientScopeRequest
  * @package EveScout\Seat\OAuth2Server\Validation
  */
-class ClientScopeRequest extends Request
+class ClientScopeRequest extends FormRequest
 {
+
+    public function authorize()
+    {
+        return true;
+    }
 
     /**
      * Get the validation rules that apply to the request.
@@ -27,6 +32,8 @@ class ClientScopeRequest extends Request
      */
     public function rules()
     {
+        $rules = [];
+
         // Ensure that the users is set, if not,
         // complain that it is actually required
         if (!$this->request->get('scopes')) {

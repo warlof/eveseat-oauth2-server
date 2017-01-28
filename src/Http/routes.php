@@ -51,17 +51,17 @@ Route::group([
 
     Route::group([
         'namespace'  => 'Admin',
-        'middleware' => 'bouncer:superuser',
+        'middleware' => ['web', 'auth', 'bouncer:superuser'],
         'prefix'     => 'oauth2-admin'
     ], function () {
 
-        Route::resource('clients', 'ClientsController');
+        Route::resource('clients', 'ClientsController', ['as' => 'oauth2-admin']);
 
         Route::resource('clients.endpoints', 'ClientEndpointsController',
-            ['only' => ['store', 'destroy']]);
+            ['as' => 'oauth2-admin', 'only' => ['store', 'destroy']]);
 
         Route::resource('clients.scopes', 'ClientScopesController',
-            ['only' => ['store', 'destroy']]);
+            ['as' => 'oauth2-admin', 'only' => ['store', 'destroy']]);
     });
 
 });

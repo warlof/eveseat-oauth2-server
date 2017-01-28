@@ -11,24 +11,13 @@
 
 namespace EveScout\Seat\OAuth2Server\Http\Controllers\Admin;
 
-use Authorizer;
-use Carbon\Carbon;
-
-use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Foundation\Application;
-use Illuminate\Routing\Route;
-use Seat\Services\Repositories\Configuration\UserRespository;
-use Seat\Services\Repositories\Character\CharacterRepository;
-use Seat\Eveapi\Models\Eve\ApiKey as ApiKeyModel;
-
-use Seat\Web\Models\Acl\Affiliation;
-use Seat\Web\Models\Acl\Role;
 
 use EveScout\Seat\OAuth2Server\Models\Client;
 use EveScout\Seat\OAuth2Server\Models\Scope;
 
 use EveScout\Seat\OAuth2Server\Validation\ClientRequest;
+use Seat\Web\Http\Controllers\Controller;
 
 /**
  * Class ClientsController

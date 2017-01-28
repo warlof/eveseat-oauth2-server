@@ -15,9 +15,9 @@
         }
     },
     "require": {
-        "php": ">=5.5.9",
-        "laravel/framework": "5.1.*",
-        "eveseat/web": "^1.0.18",
-        "lucadegasperi/oauth2-server-laravel": "^5.1.4"
+        "php": ">=7.0",
+        "laravel/framework": "5.3.*",
+        "eveseat/web": "2.0.*",
+        "lucadegasperi/oauth2-server-laravel": "5.2.*"
     }
 }

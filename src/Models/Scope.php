@@ -19,6 +19,8 @@ use Illuminate\Database\Eloquent\Model;
  */
 class Scope extends Model
 {
+    public $incrementing = false;
+
     protected $table = 'oauth_scopes';
 
     protected $fillable = ['id', 'description'];

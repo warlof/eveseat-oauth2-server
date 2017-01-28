@@ -11,17 +11,16 @@
 
 namespace EveScout\Seat\OAuth2Server\Http\Controllers;
 
-use Authorizer;
+use Illuminate\Routing\Controller;
+use LucaDegasperi\OAuth2Server\Facades\Authorizer;
 use Carbon\Carbon;
 
-use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-
+use Seat\Services\Image\Eve;
+use Seat\Services\Repositories\Character\Character;
+use Seat\Services\Repositories\Character\Info;
 use Seat\Services\Repositories\Configuration\UserRespository;
-use Seat\Services\Repositories\Character\CharacterRepository;
-
 use Seat\Eveapi\Models\Eve\AllianceList;
-use Seat\Eveapi\Models\Eve\ApiKey as ApiKeyModel;
 use Seat\Eveapi\Models\Corporation\Title as CorporationTitleModel;
 use Seat\Web\Models\Acl\Role;
 use EveScout\Seat\OAuth2Server\Models\Session;
@@ -32,7 +31,7 @@ use EveScout\Seat\OAuth2Server\Models\Session;
  */
 class OAuth2ServerController extends Controller
 {
-    use UserRespository, CharacterRepository;
+    use UserRespository, Character, Info;
 
     public function getAuthorize(Request $request)
     {
@@ -107,9 +106,6 @@ class OAuth2ServerController extends Controller
         $params = array_except($authParams, 'client');
         $params['client_id'] = $authParams['client']->getId();
 
-        $characters = $this->getCharacters();
-
-        $valid_character = $characters->where('characterID', (int) $request->input('character_id'));
         $params['character_id'] = $request->input('character_id');
         $ownerId = $params['character_id'] . ':' . auth()->user()->id;
 
@@ -217,7 +213,7 @@ class OAuth2ServerController extends Controller
         $profile['characterID']         = $character_info->characterID;
         $profile['characterName']       = $character_info->characterName;
 
-        $characterPhoto = new \Seat\Services\Image\Eve('character', (int) $character_info->characterID, 256, [], false);
+        $characterPhoto = new Eve('character', (int) $character_info->characterID, 256, [], false);
 
         $profile['characterPortrait']   = $characterPhoto->url(256);
         $profile['corporationID']       = $character_info->corporationID;

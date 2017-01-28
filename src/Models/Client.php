@@ -19,9 +19,11 @@ use Illuminate\Database\Eloquent\Model;
  */
 class Client extends Model
 {
-    protected $table = 'oauth_clients';
-    protected $primaryKey = 'id';
     public $incrementing = false;
+
+    protected $table = 'oauth_clients';
+
+    protected $primaryKey = 'id';
 
     protected $fillable = ['id', 'name', 'secret'];
 

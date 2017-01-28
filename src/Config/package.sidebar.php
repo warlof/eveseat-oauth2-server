@@ -10,16 +10,19 @@
  */
 
 return [
-	'oath2server' => [
-        'permission'    => 'Superuser',
+	'oauth2server' => [
         'name'          => 'OAuth2 Server',
+        'label'         => 'oauth2::seat.oauth2_admin',
+        'permission'    => 'superuser',
         'icon'          => 'fa-lock',
         'route_segment' => 'oauth2-admin',
         'entries'       => [
                 [
-                    'name'  => 'Clients',
-                    'icon'  => 'fa-list',
-                    'route' => 'oauth2-admin.clients.index'
+                    'name'   => 'Clients',
+                    'label'  => 'oauth2::seat.client',
+                    'plural' => true,
+                    'icon'   => 'fa-list',
+                    'route'  => 'oauth2-admin.clients.index'
                 ]
             ]
     ]

@@ -11,11 +11,15 @@
 
 namespace EveScout\Seat\OAuth2Server;
 
-use App;
-
-use Illuminate\Foundation\Application;
+use Illuminate\Contracts\Http\Kernel;
+use Illuminate\Foundation\AliasLoader;
 use Illuminate\Routing\Router;
 use Illuminate\Support\ServiceProvider;
+use LucaDegasperi\OAuth2Server\Facades\Authorizer;
+use LucaDegasperi\OAuth2Server\Middleware\CheckAuthCodeRequestMiddleware;
+use LucaDegasperi\OAuth2Server\Middleware\OAuthExceptionHandlerMiddleware;
+use LucaDegasperi\OAuth2Server\Middleware\OAuthMiddleware;
+use LucaDegasperi\OAuth2Server\Storage\FluentStorageServiceProvider;
 
 /**
  * Class OAuth2ServerServiceProvider
@@ -30,13 +34,11 @@ class OAuth2ServerServiceProvider extends ServiceProvider
      */
     public function boot(Router $router)
     {
-        $loader = \Illuminate\Foundation\AliasLoader::getInstance();
-        $loader->alias('Authorizer', \LucaDegasperi\OAuth2Server\Facades\Authorizer::class);
+        $loader = AliasLoader::getInstance();
+        $loader->alias('Authorizer', Authorizer::class);
 
-        // $this->setupConfig($this->app);
-
-        $this->addRoutes($this->app);
-        $this->addMiddleware($this->app, $router);
+        $this->addRoutes();
+        $this->addMiddleware($router);
         $this->addViews();
         $this->addTranslations();
     }
@@ -52,8 +54,8 @@ class OAuth2ServerServiceProvider extends ServiceProvider
         $this->publishes([__DIR__.'/Config/oauth2.php' => config_path('oauth2.php')]);
 
         // Register OAuth2Server service providers
-        App::register(\LucaDegasperi\OAuth2Server\Storage\FluentStorageServiceProvider::class);
-        App::register(\LucaDegasperi\OAuth2Server\OAuth2ServerServiceProvider::class);
+        $this->app->register(FluentStorageServiceProvider::class);
+        $this->app->register(\LucaDegasperi\OAuth2Server\OAuth2ServerServiceProvider::class);
     
         // Merge sidebar config for nav
         $this->mergeConfigFrom(__DIR__ . '/Config/package.sidebar.php', 'package.sidebar');
@@ -62,9 +64,9 @@ class OAuth2ServerServiceProvider extends ServiceProvider
     /**
      * Include the routes
      */
-    public function addRoutes(Application $app)
+    public function addRoutes()
     {
-        if (!$app->routesAreCached()) {
+        if (!$this->app->routesAreCached()) {
             include __DIR__ . '/Http/routes.php';
         }
     }
@@ -74,13 +76,13 @@ class OAuth2ServerServiceProvider extends ServiceProvider
      *
      * @param $router
      */
-    public function addMiddleware(Application $app, Router $router)
+    public function addMiddleware(Router $router)
     {
-        $kernel = $app->make(\Illuminate\Contracts\Http\Kernel::class);
-        $kernel->pushMiddleware(\LucaDegasperi\OAuth2Server\Middleware\OAuthExceptionHandlerMiddleware::class);
+        $kernel = $this->app->make(Kernel::class);
+        $kernel->pushMiddleware(OAuthExceptionHandlerMiddleware::class);
 
-        $router->middleware('oauth', \LucaDegasperi\OAuth2Server\Middleware\OAuthMiddleware::class);
-        $router->middleware('check-authorization-params', \LucaDegasperi\OAuth2Server\Middleware\CheckAuthCodeRequestMiddleware::class);
+        $router->middleware('oauth', OAuthMiddleware::class);
+        $router->middleware('check-authorization-params', CheckAuthCodeRequestMiddleware::class);
     }
 
     /**

@@ -11,12 +11,11 @@
 
 namespace EveScout\Seat\OAuth2Server\Http\Controllers\Admin;
 
-use App\Http\Controllers\Controller;
-
 use EveScout\Seat\OAuth2Server\Models\Client;
 use EveScout\Seat\OAuth2Server\Models\ClientEndpoint;
 
 use EveScout\Seat\OAuth2Server\Validation\ClientEndpointRequest;
+use Seat\Web\Http\Controllers\Controller;
 
 /**
  * Class ClientEndpointsController
