@@ -1,4 +1,4 @@
-@extends('web::layouts.grids.4-4-4')
+@extends('web::layouts.grids.4-8')
 
 @section('title', trans('oauth2::seat.oauth2_admin'))
 @section('page_header', trans('oauth2::seat.oauth2_admin'))
@@ -29,7 +29,12 @@
 
           <div class="form-group">
             <label for="text">{{ trans('oauth2::seat.client_secret') }}</label>
-            <input type="text" name="secret" class="form-control" id="secret" value="{{ $client->secret }}">
+            <input type="text" name="secret" class="form-control" id="secret" value="{{ $client->secret }}" readonly="readonly">
+          </div>
+
+          <div class="form-group">
+            <label for="redirect">{{ trans_choice('oauth2::seat.redirect_uri', 1) }}</label>
+            <input type="url" name="redirect" class="form-control" id="redirect" value="{{ $client->redirect }}" />
           </div>
 
         </div>
@@ -47,148 +52,85 @@
 
 @stop
 
-@section('center')
-
-  <div class="panel panel-default">
-    <div class="panel-heading">
-      <h3 class="panel-title">{{ trans_choice('oauth2::seat.endpoint', 2) }}</h3>
-    </div>
-    <div class="panel-body">
-
-      <form role="form" action="{{ route('oauth2-admin.clients.endpoints.store', [$client->id]) }}" method="post">
-        {{ csrf_field() }}
-        <div class="form-group">
-          <label for="users">{{ trans_choice('oauth2::seat.redirect_uri', 1) }}</label>
-          <input type="text" name="redirect_uri" class="form-control" id="redirect_uri" value="">
-        </div>
-
-        <button type="submit" class="btn btn-success btn-block">
-          {{ trans('oauth2::seat.add_endpoint') }}
-        </button>
-
-      </form>
-
-      @if($client->endpoints->count() > 0)
-      <table class="table table-hover table-condensed">
-        <tbody>
-          <tr>
-            <th>{{ trans_choice('oauth2::seat.endpoint', 2) }}</th>
-          </tr>
-
-        @foreach($client->endpoints as $endpoint)
-
-          <tr>
-            <td>{{ $endpoint->redirect_uri }}</td>
-            <td>
-              <form action="{{ route('oauth2-admin.clients.endpoints.destroy', [$client->id, $endpoint->id]) }}" method="POST">
-                {{ csrf_field() }}
-                {{ method_field('DELETE') }}
-
-                <button type="submit" class="btn btn-danger btn-xs confirmlink col-xs-12">
-                  {{ trans('oauth2::seat.delete') }}
-                </button>
-
-              </form>
-            </td>
-          </tr>
-
-        @endforeach
-
-        </tbody>
-      </table>
-      @endif
-
-    </div>
-    <div class="panel-footer">
-      {{ count($client->endpoints) }} {{ trans_choice('oauth2::seat.endpoint', count($client->endpoints)) }}
-    </div>
-  </div>
-@stop
-
 @section('right')
   <div class="panel panel-default">
     <div class="panel-heading">
-      <h3 class="panel-title">{{ trans_choice('oauth2::seat.scope', 2) }}</h3>
+      <h3 class="panel-title">{{ trans_choice('oauth2::seat.token', 2) }}</h3>
     </div>
     <div class="panel-body">
-
-      <form role="form" action="{{ route('oauth2-admin.clients.scopes.store', [$client->id]) }}" method="post">
-        {{ csrf_field() }}
-
-        <div class="form-group">
-          <label for="users">{{ trans('oauth2::seat.available_scopes') }}</label>
-          <select name="scopes[]" id="available_scopes" style="width: 100%" multiple>
-
-            @foreach($availableScopes as $key => $scope)
-              @if(! $client->scopes->contains($scope))
-                  <option value="{{ $scope->id }}" data-description="{{ $scope->description }}">
-                    {{ $scope->id }}
-                  </option>
+      <table class="table table-condensed table-hover" id="tokens">
+        <thead>
+          <tr>
+            <th>{{ trans('oauth2::seat.name') }}</th>
+            <th>{{ trans('oauth2::seat.created_at') }}</th>
+            <th>{{ trans_choice('oauth2::seat.scope', 2) }}</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @foreach($client->tokens as $token)
+          @if($token->revoked)
+          <tr class="danger" data-token-id="{{ $token->id }}">
+          @else
+          <tr data-token-id="{{ $token->id }}">
+          @endif
+            <td>{{ $token->name }}</td>
+            <td>{{ $token->created_at }}</td>
+            <td>
+              @foreach($availableScopes as $scope)
+              @if(in_array($scope->id, $token->scopes))
+              <dl>
+                <dt>{{ $scope->id }}</dt>
+                <dd>{{ $scope->description }}</dd>
+              </dl>
               @endif
-            @endforeach
-
-          </select>
-        </div>
-        <button type="submit" class="btn btn-success btn-block">
-          {{ trans_choice('oauth2::seat.add_scope', 2) }}
-        </button>
-      </form>
-
-      @if($client->scopes->count() > 0)
-
-        <table class="table table-hover table-condensed">
-          <tbody>
-            <tr>
-              <th>{{ trans_choice('oauth2::seat.scope', 2) }}</th>
-            </tr>
-
-          @foreach($client->scopes as $scope)
-
-            <tr>
-              <td><em>{{ $scope->id }}</em><br>{{ $scope->description }}</td>
-              <td>
-                <form action="{{ route('oauth2-admin.clients.scopes.destroy', [$client->id, $scope->id]) }}" method="POST">
-                  {{ csrf_field() }}
-                  {{ method_field('DELETE') }}
-
-                  <button type="submit" class="btn btn-danger btn-xs confirmlink col-xs-12">
-                    {{ trans('oauth2::seat.delete') }}
-                  </button>
-
-                </form>
-              </td>
-            </tr>
-
+              @endforeach
+            </td>
+            <td>
+              <form method="post" action="{{ route('oauth2-admin.token.revoke', ['oauth_token' => $token]) }}">
+                {{ csrf_field() }}
+                <button type="button" class="btn btn-xs btn-default">Show</button>
+                <button type="submit" class="btn btn-xs btn-danger">Revoke</button>
+              </form>
+            </td>
+          </tr>
           @endforeach
-
-          </tbody>
-        </table>
-
-      @endif
-
+        </tbody>
+      </table>
     </div>
     <div class="panel-footer">
-      {{ count($client->scopes) }} {{ trans_choice('oauth2::seat.scope', count($client->scopes)) }}
+      {{ count($client->tokens) }} {{ trans_choice('oauth2::seat.token', count($client->tokens)) }}
+    </div>
+  </div>
+
+  <div class="modal fade" tabindex="-1" role="dialog" id="token-modal">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+          <h4 class="modal-title">{{ trans_choice('oauth2::seat.token', 1) }}</h4>
+        </div>
+        <div class="modal-body"></div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        </div>
+      </div>
     </div>
   </div>
 @stop
 
-@section('javascript')
+@push('javascript')
+  <script type="application/javascript">
+    var tokensTable = $('#tokens');
 
-  @include('web::includes.javascript.id-to-name')
-
-  <script>
-    function formatScope (scope) {
-      var $scope = $(
-        '<div><strong>' + scope.text + '</strong></div><div>' + $(scope.element).data('description') + '</div>'
-      );
-      return $scope;
-    };
-
-    $("#available_scopes").select2({
-       placeholder: "{{ trans('web::seat.select_item_add') }}",
-       templateResult: formatScope
+    tokensTable.find('tr td button.btn-default').click(function(){
+        var modal = $('#token-modal');
+        modal.find('.modal-body').html('<p>' +
+            $(this).closest('tr').attr('data-token-id') + '</p>');
+        modal.modal();
     });
   </script>
 
-@stop
+@endpush

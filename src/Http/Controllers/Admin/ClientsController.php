@@ -13,17 +13,16 @@ namespace EveScout\Seat\OAuth2Server\Http\Controllers\Admin;
 
 use Illuminate\Http\Request;
 
-use EveScout\Seat\OAuth2Server\Models\Client;
-use EveScout\Seat\OAuth2Server\Models\Scope;
+use Laravel\Passport\Client;
 
-use EveScout\Seat\OAuth2Server\Validation\ClientRequest;
-use Seat\Web\Http\Controllers\Controller;
+use Laravel\Passport\Http\Controllers\ClientController;
+use Laravel\Passport\Passport;
 
 /**
  * Class ClientsController
  * @package EveScout\Seat\OAuth2Server\Http\Controllers\Admin
  */
-class ClientsController extends Controller
+class ClientsController extends ClientController
 {
     private function isVerifyCsrfTokenExceptValid() {
         // Reflect the class and get default properies
@@ -52,41 +51,39 @@ class ClientsController extends Controller
             $request->session()->flash('error', 'OAuth2 will not work until you add \'oauth2/token\' to the \'$except\' property in /app/Http/Middleware/VerifyCsrfToken.php');
         }
 
-        $clients = Client::all();
+        $clients = Client::where('user_id', auth()->user()->id)->get();
 
         return view('oauth2::admin.clients.index', compact('clients'));
     }
 
     public function show($client) {
         $client = Client::findOrFail($client);
-        $availableScopes = Scope::all();
+        $availableScopes = Passport::scopes();
 
         return view('oauth2::admin.clients.show', compact(['client', 'availableScopes']));
     }
 
-    public function store(ClientRequest $request)
+    public function store(Request $request)
     {
-        $client = Client::create($request->all());
+        $passport = parent::store($request);
 
-        return redirect()->route('oauth2-admin.clients.show', [$client->id])
+        return redirect()->route('oauth2-admin.clients.show', [$passport->id])
             ->with('success', 'New Client Created');
     }
 
-    public function update($client, ClientRequest $request)
+    public function update(Request $request, $clientId)
     {
-        $client = Client::findOrFail($client);
-        $client->update($request->all());
+        $passport = parent::update($request, $clientId);
 
         return redirect()->back()
             ->with('success', 'Oauth2 Client Updated');
     }
 
-    public function destroy($client)
+    public function destroy(Request $request, $clientId)
     {
-        $client = Client::findOrFail($client);
-        $client->delete();
+        parent::destroy($request, $clientId);
 
         return redirect()->back()
-            ->with('success', 'Oauth2 Client Deleted');
+            ->with('success', 'Oauth2 Client has been successfully revoked.');
     }
 }

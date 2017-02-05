@@ -246,4 +246,9 @@ class OAuth2ServerController extends Controller
 
         return response()->json($profile);
     }
+
+    public function getCharacter($character_id)
+    {
+        return response()->json(['character' => $character_id]);
+    }
 }

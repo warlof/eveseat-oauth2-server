@@ -22,13 +22,8 @@
           </div>
 
           <div class="form-group">
-            <label for="comment">{{ trans('oauth2::seat.client_id') }}</label>
-            <input type="text" name="id" class="form-control" id="id" value="{{ old('id') }}">
-          </div>
-
-          <div class="form-group">
-            <label for="text">{{ trans('oauth2::seat.client_secret') }}</label>
-            <input type="text" name="secret" class="form-control" id="secret" value="{{ old('secret') }}">
+            <label for="redirect">{{ trans_choice('oauth2::seat.redirect_uri', 1) }}</label>
+            <input type="url" name="redirect" class="form-control" id="redirect" value="{{ old('redirect') }}" />
           </div>
 
         </div>
@@ -64,24 +59,30 @@
 
         @foreach($clients as $client)
 
+          @if ($client->revoked)
+          <tr class="danger">
+          @else
           <tr>
+          @endif
             <td>{{ $client->name }}</td>
             <td>{{ $client->id }}</td>
             <td>{{ $client->secret }}</td>
             <td>
+              @if (!$client->revoke)
                 <a href="{{ route('oauth2-admin.clients.show', [$client->id]) }}" type="button" class="btn btn-primary btn-xs">
                   {{ trans('oauth2::seat.view') }}
                 </a>
 
-                <form action="{{ route('oauth2-admin.clients.destroy', [$client->id]) }}" method="POST" class="inline">
+                <form action="{{ route('oauth2-admin.clients.destroy', $client) }}" method="POST" class="inline">
                   {{ csrf_field() }}
                   {{ method_field('DELETE') }}
 
                   <button type="submit" class="btn btn-danger btn-xs confirmlink">
-                    {{ trans('oauth2::seat.delete') }}
+                    {{ trans('oauth2::seat.revoke') }}
                   </button>
 
                 </form>
+              @endif
             </td>
           </tr>
 

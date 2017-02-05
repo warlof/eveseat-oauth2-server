@@ -15,16 +15,6 @@ Route::group([
 
     Route::group(['prefix' => 'oauth2', 'as' => 'oauth2.'], function() {
         Route::group(['middleware' => ['check-authorization-params', 'auth']], function() {
-            Route::get('/authorize', [
-                'as'         => 'authorize.get',
-                'uses'       => 'OAuth2ServerController@getAuthorize'
-            ]);
-
-            Route::post('/authorize', [
-                'as'         => 'authorize.post',
-                'uses'       => 'OAuth2ServerController@postAuthorize'
-            ]);
-
             Route::get('/character-chooser', [
                 'as'         => 'character-chooser.get',
                 'uses'       => 'OAuth2ServerController@getCharacterChooser'
@@ -50,18 +40,26 @@ Route::group([
     });
 
     Route::group([
+        'middleware' => ['auth:api']
+    ], function(){
+        Route::get('/api/v2/characters/{character_id}', [
+            'as' => 'oauth2.character',
+            'uses' => 'OAuth2ServerController@getCharacter'
+        ]);
+    });
+
+    Route::group([
         'namespace'  => 'Admin',
-        'middleware' => ['web', 'auth', 'bouncer:superuser'],
+        'middleware' => ['web', 'auth'],
         'prefix'     => 'oauth2-admin'
     ], function () {
 
         Route::resource('clients', 'ClientsController', ['as' => 'oauth2-admin']);
 
-        Route::resource('clients.endpoints', 'ClientEndpointsController',
-            ['as' => 'oauth2-admin', 'only' => ['store', 'destroy']]);
-
-        Route::resource('clients.scopes', 'ClientScopesController',
-            ['as' => 'oauth2-admin', 'only' => ['store', 'destroy']]);
+        Route::post('/clients/token/{oauth_token}', [
+            'as'    => 'oauth2-admin.token.revoke',
+            'uses'  => 'TokensController@revoke'
+        ]);
     });
 
 });

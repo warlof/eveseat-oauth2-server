@@ -11,22 +11,25 @@
 
 namespace EveScout\Seat\OAuth2Server;
 
+use Carbon\Carbon;
 use Illuminate\Contracts\Http\Kernel;
-use Illuminate\Foundation\AliasLoader;
+use Illuminate\Foundation\Support\Providers\AuthServiceProvider;
 use Illuminate\Routing\Router;
-use Illuminate\Support\ServiceProvider;
-use LucaDegasperi\OAuth2Server\Facades\Authorizer;
-use LucaDegasperi\OAuth2Server\Middleware\CheckAuthCodeRequestMiddleware;
-use LucaDegasperi\OAuth2Server\Middleware\OAuthExceptionHandlerMiddleware;
-use LucaDegasperi\OAuth2Server\Middleware\OAuthMiddleware;
-use LucaDegasperi\OAuth2Server\Storage\FluentStorageServiceProvider;
+use Laravel\Passport\Http\Middleware\CheckForAnyScope;
+use Laravel\Passport\Http\Middleware\CheckScopes;
+use Laravel\Passport\Passport;
+use Laravel\Passport\PassportServiceProvider;
 
 /**
  * Class OAuth2ServerServiceProvider
  * @package EveScout\Seat\OAuth2Server
  */
-class OAuth2ServerServiceProvider extends ServiceProvider
+class OAuth2ServerServiceProvider extends AuthServiceProvider
 {
+    protected $policies = [
+        'App\Model' => 'App\Policies\ModelPolicy'
+    ];
+
     /**
      * Perform post-registration booting of services.
      *
@@ -34,11 +37,9 @@ class OAuth2ServerServiceProvider extends ServiceProvider
      */
     public function boot(Router $router)
     {
-        $loader = AliasLoader::getInstance();
-        $loader->alias('Authorizer', Authorizer::class);
-
         $this->addRoutes();
-        $this->addMiddleware($router);
+        $this->addMiddlewares($router);
+        $this->setupOAuth();
         $this->addViews();
         $this->addTranslations();
     }
@@ -50,12 +51,12 @@ class OAuth2ServerServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        // Publish our config before we register OAuth2Server can
-        $this->publishes([__DIR__.'/Config/oauth2.php' => config_path('oauth2.php')]);
+        $this->mergeConfigFrom(__DIR__ . '/Config/oauth2.php', 'oauth2');
 
         // Register OAuth2Server service providers
-        $this->app->register(FluentStorageServiceProvider::class);
-        $this->app->register(\LucaDegasperi\OAuth2Server\OAuth2ServerServiceProvider::class);
+        $this->app->register(PassportServiceProvider::class);
+
+        $this->registerPolicies();
     
         // Merge sidebar config for nav
         $this->mergeConfigFrom(__DIR__ . '/Config/package.sidebar.php', 'package.sidebar');
@@ -66,23 +67,27 @@ class OAuth2ServerServiceProvider extends ServiceProvider
      */
     public function addRoutes()
     {
+        Passport::routes();
+
         if (!$this->app->routesAreCached()) {
             include __DIR__ . '/Http/routes.php';
         }
     }
 
-    /**
-     * Include the middleware needed
-     *
-     * @param $router
-     */
-    public function addMiddleware(Router $router)
+    public function addMiddlewares(Router $router)
     {
-        $kernel = $this->app->make(Kernel::class);
-        $kernel->pushMiddleware(OAuthExceptionHandlerMiddleware::class);
+        //$router->pushMiddlewareToGroup()
+        $router->middleware('scopes', CheckScopes::class);
+        $router->middleware('scope', CheckForAnyScope::class);
+    }
 
-        $router->middleware('oauth', OAuthMiddleware::class);
-        $router->middleware('check-authorization-params', CheckAuthCodeRequestMiddleware::class);
+    public function setupOAuth()
+    {
+        Passport::tokensExpireIn(Carbon::now()->addSeconds(config('oauth2.access_token_ttl')));
+
+        Passport::refreshTokensExpireIn(Carbon::now()->addSeconds(config('oauth2.refresh_token_ttl')));
+
+        Passport::tokensCan(config('oauth2.scopes'));
     }
 
     /**

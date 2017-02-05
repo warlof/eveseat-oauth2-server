@@ -19,6 +19,7 @@ return [
     'client_secret'       => 'Client Secret',
     'name'                => 'Name',
     'client'              => 'Client|Clients',
+    'token'               => 'Token|Tokens',
     'endpoint'            => 'Endpoint|Endpoints',
     'add_endpoint'        => 'Add Endpoint',
     'add'                 => 'Add',
@@ -28,5 +29,7 @@ return [
     'redirect_uri'        => 'Redirect URI|Redirect URIs',
     'scope'               => 'Scope|Scopes',
     'add_scope'           => 'Add Scope|Add Scopes',
-    'available_scopes'    => 'Available Scopes'
+    'available_scopes'    => 'Available Scopes',
+    'revoke'              => 'Revoke',
+    'created_at'          => 'Created At'
 ];

@@ -18,6 +18,6 @@
         "php": ">=7.0",
         "laravel/framework": "5.3.*",
         "eveseat/web": "2.0.*",
-        "lucadegasperi/oauth2-server-laravel": "5.2.*"
+        "laravel/passport": "1.*"
     }
 }
